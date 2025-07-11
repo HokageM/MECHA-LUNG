@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  db:
+    image: postgres
+    container_name: mecha_lung_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lung_db
+      POSTGRES_USER: lung_user
+      POSTGRES_PASSWORD: supersecret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+volumes:
+  pg_data:
