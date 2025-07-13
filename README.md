@@ -184,7 +184,7 @@ POST /api/doctors/login
   "token_type": "bearer",
   "user": {
     "id": 1,
-    "user_name": "dr_smith",
+    "user_name": "dr_naruto",
     "is_active": true
   }
 }
