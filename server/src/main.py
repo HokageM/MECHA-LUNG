@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from db.database import Engine, SessionLocal
 from db.models import Base, Doctor, PatientData
-from security import hash_password, verify_password, create_access_token, verify_token
+from security import create_access_token, verify_token
 from config import settings
 from schemas import (
     DoctorCreate, 

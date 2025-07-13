@@ -2,52 +2,14 @@ import React, { useState, useEffect } from 'react'
 import PatientForm from './components/PatientForm'
 import PatientEditForm from './components/PatientEditForm'
 import PatientList from './components/PatientList'
-
-interface ApiData {
-  message?: string;
-  status?: string;
-  error?: string;
-}
-
-interface Doctor {
-  id: number;
-  user_name: string;
-  created_at?: string;
-  is_active: boolean;
-}
-
-interface LoginResponse {
-  access_token: string;
-  token_type: string;
-  user: Doctor;
-}
-
-interface ErrorResponse {
-  detail: string;
-}
-
-interface Patient {
-  id: number;
-  name: string;
-  age: number;
-  biological_gender: boolean;
-  smoking: boolean;
-  yellow_fingers: boolean;
-  anxiety: boolean;
-  peer_pressure: boolean;
-  chronic_disease: boolean;
-  fatigue: boolean;
-  allergy: boolean;
-  wheezing: boolean;
-  alcohol: boolean;
-  coughing: boolean;
-  shortness_of_breath: boolean;
-  swallowing_difficulty: boolean;
-  chest_pain: boolean;
-  lung_cancer: boolean;
-  prediction_confidence: number;
-  created_at: string;
-}
+import { 
+  ApiData, 
+  Doctor, 
+  LoginResponse, 
+  Patient,
+  PatientFormData 
+} from './types'
+import { api } from './utils/api'
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -83,47 +45,30 @@ function App() {
 
   const fetchApiData = async () => {
     setLoading(true);
-    try {
-      const response = await fetch('http://localhost:8000/');
-      const data = await response.json();
-      setApiData(data);
-    } catch (error) {
-      console.error('Error fetching API data:', error);
-      setApiData({ error: 'Failed to connect to server' });
-    } finally {
-      setLoading(false);
+    const response = await api.publicRequest<ApiData>('/');
+    if (response.data) {
+      setApiData(response.data);
+    } else {
+      setApiData({ error: response.error || 'Failed to connect to server' });
     }
+    setLoading(false);
   };
 
   const checkAuthStatus = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    if (api.isAuthenticated()) {
       // Verify token is still valid by calling protected endpoint
-      fetchCurrentUser(token);
+      fetchCurrentUser();
     }
   };
 
-  const fetchCurrentUser = async (token: string) => {
-    try {
-      const response = await fetch('http://localhost:8000/api/doctors/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        setCurrentUser(userData);
-        setIsLoggedIn(true);
-      } else {
-        // Token is invalid, remove it
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-        setCurrentUser(null);
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      localStorage.removeItem('token');
+  const fetchCurrentUser = async () => {
+    const response = await api.authenticatedRequest<Doctor>('/api/doctors/me');
+    if (response.data) {
+      setCurrentUser(response.data);
+      setIsLoggedIn(true);
+    } else {
+      // Token is invalid, remove it
+      api.removeToken();
       setIsLoggedIn(false);
       setCurrentUser(null);
     }
@@ -131,25 +76,13 @@ function App() {
 
   const fetchPatients = async () => {
     setPatientsLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/patients', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const patientsData = await response.json();
-        setPatients(patientsData);
-      } else {
-        console.error('Failed to fetch patients');
-      }
-    } catch (error) {
-      console.error('Error fetching patients:', error);
-    } finally {
-      setPatientsLoading(false);
+    const response = await api.authenticatedRequest<Patient[]>('/api/patients');
+    if (response.data) {
+      setPatients(response.data);
+    } else {
+      console.error('Failed to fetch patients:', response.error);
     }
+    setPatientsLoading(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -157,41 +90,30 @@ function App() {
     setLoginLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch('http://localhost:8000/api/doctors/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_name: username,
-          password: password
-        })
-      });
+    const response = await api.publicRequest<LoginResponse>('/api/doctors/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_name: username,
+        password: password
+      })
+    });
 
-      if (response.ok) {
-        const data: LoginResponse = await response.json();
-        // Store token
-        localStorage.setItem('token', data.access_token);
-        setCurrentUser(data.user);
-        setIsLoggedIn(true);
-        setUsername('');
-        setPassword('');
-        setError(null);
-      } else {
-        const errorData: ErrorResponse = await response.json();
-        setError(errorData.detail || 'Login failed');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('Network error. Please check your connection.');
-    } finally {
-      setLoginLoading(false);
+    if (response.data) {
+      // Store token
+      api.setToken(response.data.access_token);
+      setCurrentUser(response.data.user);
+      setIsLoggedIn(true);
+      setUsername('');
+      setPassword('');
+      setError(null);
+    } else {
+      setError(response.error || 'Login failed');
     }
+    setLoginLoading(false);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    api.removeToken();
     setIsLoggedIn(false);
     setCurrentUser(null);
     setUsername('');
@@ -201,34 +123,21 @@ function App() {
     setShowPatientForm(false);
   };
 
-  const handleAddPatient = async (patientData: any) => {
+  const handleAddPatient = async (patientData: PatientFormData) => {
     setAddingPatient(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/patients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(patientData)
-      });
+    const response = await api.authenticatedRequest<Patient>('/api/patients', {
+      method: 'POST',
+      body: JSON.stringify(patientData)
+    });
 
-      if (response.ok) {
-        const newPatient = await response.json();
-        setPatients(prev => [newPatient, ...prev]);
-        setShowPatientForm(false);
-        alert('Patient added successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to add patient: ${errorData.detail}`);
-      }
-    } catch (error) {
-      console.error('Error adding patient:', error);
-      alert('Network error. Please try again.');
-    } finally {
-      setAddingPatient(false);
+    if (response.data) {
+      setPatients(prev => [response.data!, ...prev]);
+      setShowPatientForm(false);
+      alert('Patient added successfully!');
+    } else {
+      alert(`Failed to add patient: ${response.error}`);
     }
+    setAddingPatient(false);
   };
 
   const handleDeletePatient = async (patientId: number) => {
@@ -236,24 +145,15 @@ function App() {
       return;
     }
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/patients/${patientId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    const response = await api.authenticatedRequest(`/api/patients/${patientId}`, {
+      method: 'DELETE'
+    });
 
-      if (response.ok) {
-        setPatients(prev => prev.filter(p => p.id !== patientId));
-        alert('Patient deleted successfully!');
-      } else {
-        alert('Failed to delete patient');
-      }
-    } catch (error) {
-      console.error('Error deleting patient:', error);
-      alert('Network error. Please try again.');
+    if (response.status === 200) {
+      setPatients(prev => prev.filter(p => p.id !== patientId));
+      alert('Patient deleted successfully!');
+    } else {
+      alert(`Failed to delete patient: ${response.error}`);
     }
   };
 
@@ -266,35 +166,22 @@ function App() {
     setShowEditForm(true);
   };
 
-  const handleUpdatePatient = async (patientId: number, patientData: any) => {
+  const handleUpdatePatient = async (patientId: number, patientData: PatientFormData) => {
     setUpdatingPatient(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/patients/${patientId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(patientData)
-      });
+    const response = await api.authenticatedRequest<Patient>(`/api/patients/${patientId}`, {
+      method: 'PUT',
+      body: JSON.stringify(patientData)
+    });
 
-      if (response.ok) {
-        const updatedPatient = await response.json();
-        setPatients(prev => prev.map(p => p.id === patientId ? updatedPatient : p));
-        setShowEditForm(false);
-        setEditingPatient(null);
-        alert('Patient updated successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to update patient: ${errorData.detail}`);
-      }
-    } catch (error) {
-      console.error('Error updating patient:', error);
-      alert('Network error. Please try again.');
-    } finally {
-      setUpdatingPatient(false);
+    if (response.data) {
+      setPatients(prev => prev.map(p => p.id === patientId ? response.data! : p));
+      setShowEditForm(false);
+      setEditingPatient(null);
+      alert('Patient updated successfully!');
+    } else {
+      alert(`Failed to update patient: ${response.error}`);
     }
+    setUpdatingPatient(false);
   };
 
   // Show login screen if not logged in

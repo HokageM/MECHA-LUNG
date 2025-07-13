@@ -1,3 +1,5 @@
+
+
 const API_BASE_URL = 'http://localhost:8000';
 
 export interface ApiResponse<T = any> {
@@ -20,6 +22,11 @@ export const api = {
   // Remove auth token from localStorage
   removeToken: (): void => {
     localStorage.removeItem('token');
+  },
+
+  // Check if user is authenticated
+  isAuthenticated: (): boolean => {
+    return !!localStorage.getItem('token');
   },
 
   // Make authenticated API request

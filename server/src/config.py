@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 class Settings:
@@ -15,7 +14,7 @@ class Settings:
     
     # Encryption
     ENCRYPTION_PASSWORD: str = os.getenv("ENCRYPTION_PASSWORD", "mecha-lung-encryption-key-2024")
-    ENCRYPTION_SALT: str = os.getenv("ENCRYPTION_SALT", "")  # Will be generated on first use
+    ENCRYPTION_SALT: str = os.getenv("ENCRYPTION_SALT", "")
     
     # CORS
     ALLOWED_ORIGINS: list = [
