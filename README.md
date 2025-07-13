@@ -102,6 +102,19 @@ npm run dev
 - **API Docs**: http://localhost:8000/docs
 - **Login**: Use the sample account created by setup.py (dr_naruto / hokage)
 
+## 📸 Application Screenshots
+
+### Login Screen
+![Login Screen](docs/screenshots/LoginScreen.png)
+*Secure doctor authentication with JWT token management*
+
+### Dashboard
+![Dashboard](docs/screenshots/Dashoard.png)
+*Main application interface with patient management and risk assessment*
+
+### Patient Creation
+![Patient Creation](docs/screenshots/PatientCreation.png)
+*Adding new patients with encrypted name storage and automated risk prediction*
 
 ## 🔧 Setup Guide
 
