@@ -174,8 +174,8 @@ POST /api/doctors/register
 ```bash
 POST /api/doctors/login
 {
-  "user_name": "dr_smith", 
-  "password": "secure123"
+  "user_name": "dr_naruto", 
+  "password": "hokage"
 }
 
 # Response:
