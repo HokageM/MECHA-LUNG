@@ -8,3 +8,8 @@ bcrypt
 python-jose[cryptography]
 passlib[bcrypt]
 cryptography
+pandas
+scikit-learn
+matplotlib
+joblib
+imbalanced-learn

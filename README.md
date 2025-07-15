@@ -344,7 +344,19 @@ curl -X GET "http://localhost:8000/api/patients" \
 
 ### 5. **Machine Learning Integration**
 
-Comming Soon ...
+**Handle Unbalanced Dataset**
+- Stratifies Split into Training/Test sets
+- Balanced Accuracy Score = arithmetic mean of sensitivity and specificity = ROC-AUC for binary classification
+- SMOTE for generating artificial examples of the minority class
+
+**SMOTE Core Idea**
+1. Pick one minortiy-class sample x
+2. Find its k nearest minority neighbors
+3. Randomly choose one of those neiborgs x_n
+4. Synthesize a new sample on the line segment joining the two
+5. Repeat unti you reach the desired minority-class size
+- Is only applied to training data.
+
 
 ## 🛠️ Technical Stack
 

@@ -1,11 +1,14 @@
 """
-Mocked ML prediction module for lung cancer risk assessment
-This will be replaced with actual ML model later
+ML prediction module for lung cancer risk assessment
 """
+
+import joblib
+
+model = joblib.load("server/src/ml/model/lung_cancer_model.joblib")
 
 def predict_lung_cancer_risk(patient_data: dict) -> bool:
     """
-    Mocked prediction function for lung cancer risk
+    Prediction function for lung cancer risk
     
     Args:
         patient_data: Dictionary containing patient symptoms and data
@@ -13,12 +16,8 @@ def predict_lung_cancer_risk(patient_data: dict) -> bool:
     Returns:
         bool: Predicted lung cancer risk (True = high risk, False = low risk)
     """
-    # TODO: Replace with actual ML model
-    # For now, return False (low risk) for all patients
-    # This will be replaced with scikit-learn model later
-    
-    print(f"Mocked prediction called with data: {patient_data}")
-    print("Returning False (low risk) for all patients")
+
+    # convert patient_data to pandas DataFrame
     
     return False
 
