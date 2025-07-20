@@ -342,21 +342,28 @@ curl -X GET "http://localhost:8000/api/patients" \
 - **Error Handling**: Graceful error display
 - **Responsive Design**: Mobile-friendly interface
 
-### 5. **Machine Learning Integration**
+### 5. Handling Unbalanced Datasets
 
-**Handle Unbalanced Dataset**
-- Stratifies Split into Training/Test sets
-- Balanced Accuracy Score = arithmetic mean of sensitivity and specificity = ROC-AUC for binary classification
-- SMOTE for generating artificial examples of the minority class
+Dealing with class imbalance is crucial for building robust machine learning models, especially in this [medical dataset](https://www.kaggle.com/datasets/mysarahmadbhat/lung-cancer) where negative cases (e.g., cancer) are rare.
 
-**SMOTE Core Idea**
-1. Pick one minortiy-class sample x
-2. Find its k nearest minority neighbors
-3. Randomly choose one of those neiborgs x_n
-4. Synthesize a new sample on the line segment joining the two
-5. Repeat unti you reach the desired minority-class size
-- Is only applied to training data.
+- **Stratified Split:**  
+  Ensures both training and test sets maintain the original class distribution, preventing bias during evaluation.
 
+- **Balanced Accuracy Score:**  
+  - Defined as the arithmetic mean of sensitivity (recall for the positive class) and specificity (recall for the negative class).
+  - For binary classification, this is equivalent to the ROC-AUC score.
+  - Provides a more informative metric than plain accuracy on imbalanced data.
+
+- **SMOTE (Synthetic Minority Over-sampling Technique):**  
+  - Generates artificial examples of the minority class to balance the dataset.
+  - Applied only to the training data to prevent data leakage.
+
+**How SMOTE Works:**
+1. Select a minority-class sample \( x \).
+2. Find its \( k \) nearest minority-class neighbors.
+3. Randomly choose one of these neighbors \( x_n \).
+4. Synthesize a new sample along the line segment between \( x \) and \( x_n \).
+5. Repeat until the desired number of synthetic samples is reached.
 
 ## 🛠️ Technical Stack
 

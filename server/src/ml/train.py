@@ -94,7 +94,6 @@ if __name__ == "__main__":
 
     # Oversample only on training data using SMOTE
     X_train, y_train = oversample_data(X_train, y_train)
-
     model = train_lung_cancer_model(X_train, y_train)
 
     evaluate_model(model, X_test, y_test)
